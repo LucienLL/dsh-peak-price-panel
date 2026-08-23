@@ -16,14 +16,15 @@ if (-not $token) {
 }
 if (-not $token) { throw 'npm token missing. Run: setx NPM_PUBLISH_TOKEN "<your-granular-token>"' }
 
-$npmrc = Join-Path $root '.npmrc'
+Push-Location $root
 try {
-  Set-Content -Path $npmrc -Value ("//registry.npmjs.org/:_authToken=" + $token) -Encoding ascii
+  Set-Content -Path '.npmrc' -Value ("//registry.npmjs.org/:_authToken=" + $token) -Encoding ascii
   Write-Host 'Publishing dsh-peak-price-panel via official npm CLI (WebAuthn).'
   Write-Host 'If npm prints a URL like https://www.npmjs.com/auth/cli/<id>, open it in your browser and approve with your security key.'
-  & $node $npmCli publish --ignore-scripts --cache (Join-Path $root '.npm-cache')
+  & $node $npmCli publish --ignore-scripts --cache '.npm-cache'
   if ($LASTEXITCODE -ne 0) { throw "npm publish failed (exit $LASTEXITCODE)" }
   Write-Host 'Published. Verify at: https://www.npmjs.com/package/dsh-peak-price-panel'
 } finally {
-  Remove-Item -Force $npmrc -ErrorAction SilentlyContinue
+  Remove-Item -Force '.npmrc' -ErrorAction SilentlyContinue
+  Pop-Location
 }
