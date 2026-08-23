@@ -1,0 +1,34 @@
+# Bundle patch layer for dsh-peak-price-panel: inserts the cost-panel row into the
+# launcher composition (host half = lib/index.js, browser half = ./client).
+# Values below are the composition `base` layer; the user can override every
+# field live from Settings -> Plugins -> Cost panel.
+- insert:
+    - id: cost-panel
+      name: 'dsh-peak-price-panel'
+      config:
+        warnThreshold: 50
+        criticalThreshold: 20
+        extremeThreshold: 5
+        refreshSeconds: 60
+        peakLeadSeconds: 1800
+        currency: CNY
+        apiKeyEnv: DEEPSEEK_API_KEY
+        scheduleVersion: '2026-08-23'
+        staleAfterDays: 30
+        models: []
+        prices:
+          deepseek-v4-flash:
+            cacheHit: 0.10
+            cacheMiss: 3.0
+            output: 9.0
+          deepseek-v4-pro:
+            cacheHit: 0.30
+            cacheMiss: 9.0
+            output: 27.0
+          deepseek-v4-flash-vision-exp:
+            cacheHit: 0.10
+            cacheMiss: 3.0
+            output: 9.0
+        peakWindows:
+          - [9, 12]
+          - [14, 18]
