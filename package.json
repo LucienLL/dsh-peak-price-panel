@@ -1,6 +1,6 @@
 {
   "name": "dsh-peak-price-panel",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "DeepSeek Harness plugin: peak/off-peak price watch, live account balance with tiered low-balance alerts, and a top-up button for the main web UI",
   "type": "module",
   "main": "lib/index.js",
