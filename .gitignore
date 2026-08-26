@@ -1,4 +1,6 @@
 node_modules/
+node_modules.migrated-*/
 .npmrc
 .npm-cache/
 *.tgz
+pnpm-lock.yaml
