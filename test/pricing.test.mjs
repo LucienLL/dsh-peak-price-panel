@@ -9,6 +9,10 @@ import {
   leadWarning,
   boundariesOf,
   daysSinceVersion,
+  beijingDate,
+  holidaysCoverYear,
+  DEFAULT_HOLIDAYS,
+  DEFAULT_PEAK_WINDOWS,
   SCHEDULE_VERSION,
 } from '../lib/pricing.js'
 
@@ -73,16 +77,21 @@ test('nextTransition: Saturday evening rolls to Monday 09:00', () => {
 })
 
 test('priceFor: peak is full price, offpeak is half', () => {
-  assert.deepEqual(priceFor('deepseek-v4-flash', bj(10)), { cacheHit: 0.1, cacheMiss: 3, output: 9 })
-  assert.deepEqual(priceFor('deepseek-v4-flash', bj(13)), { cacheHit: 0.05, cacheMiss: 1.5, output: 4.5 })
+  assert.deepEqual(priceFor('deepseek-flash', bj(10)), { cacheHit: 0.04, cacheMiss: 2, output: 8 })
+  assert.deepEqual(priceFor('deepseek-flash', bj(13)), { cacheHit: 0.02, cacheMiss: 1, output: 4 })
+})
+
+test('priceFor: legacy Flash names share the Flash rate', () => {
+  assert.deepEqual(priceFor('deepseek-v4-flash', bj(10)), { cacheHit: 0.04, cacheMiss: 2, output: 8 })
+  assert.deepEqual(priceFor('deepseek-v4-flash-vision-exp', bj(10)), { cacheHit: 0.04, cacheMiss: 2, output: 8 })
 })
 
 test('priceFor: weekend uses off-peak (half) price', () => {
-  assert.deepEqual(priceFor('deepseek-v4-flash', bjDay(22, 10)), { cacheHit: 0.05, cacheMiss: 1.5, output: 4.5 })
+  assert.deepEqual(priceFor('deepseek-flash', bjDay(22, 10)), { cacheHit: 0.02, cacheMiss: 1, output: 4 })
 })
 
 test('priceTable: peak is 2x offpeak for every model', () => {
-  for (const model of ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-flash-vision-exp']) {
+  for (const model of ['deepseek-flash', 'deepseek-v4-pro', 'deepseek-v4-flash', 'deepseek-v4-flash-vision-exp']) {
     const t = priceTable(model)
     assert.equal(t.cacheHit.peak, Math.round(t.cacheHit.offpeak * 2 * 100) / 100)
     assert.equal(t.cacheMiss.peak, Math.round(t.cacheMiss.offpeak * 2 * 100) / 100)
@@ -152,4 +161,39 @@ test('daysSinceVersion: computes whole days since a version stamp', () => {
   assert.equal(daysSinceVersion('2026-09-23', now), -1) // future -> negative
   assert.equal(daysSinceVersion('bad', now), null)
   assert.equal(daysSinceVersion(undefined, now), null)
+})
+
+// ── Chinese public holidays: DeepSeek bills them off-peak all day ──
+
+/** Beijing wall clock for an explicit calendar date. */
+const bjAbs = (y, mo, d, h = 0, mi = 0) => new Date(Date.UTC(y, mo - 1, d, h - 8, mi))
+
+test('holidays: weekday holidays are off-peak, neighbouring workdays stay peak', () => {
+  assert.equal(isPeak(bjAbs(2026, 9, 30, 10)), true) // Wed before 国庆
+  assert.equal(isPeak(bjAbs(2026, 10, 1, 10)), false) // Thu, 国庆 1st day
+  assert.equal(isPeak(bjAbs(2026, 10, 7, 10)), false) // Wed, 国庆 last day
+  assert.equal(isPeak(bjAbs(2026, 10, 8, 10)), true) // Thu after 国庆
+})
+
+test('holidays: nextTransition skips the whole 国庆 span', () => {
+  const nt = nextTransition(bjAbs(2026, 9, 30, 20)) // Wed 20:00 -> Thu 10-08 09:00
+  assert.equal(nt.toPeak, true)
+  assert.equal(nt.deltaSeconds, 181 * 3600)
+  assert.equal(nt.at.getUTCDay(), 4) // Thursday
+})
+
+test('holidays: an empty holiday list degrades to the weekend-only rule', () => {
+  assert.equal(isPeak(bjAbs(2026, 10, 1, 10), DEFAULT_PEAK_WINDOWS, []), true)
+})
+
+test('holidays: beijingDate and holidaysCoverYear', () => {
+  assert.equal(beijingDate(bjAbs(2026, 10, 7, 23, 30)), '2026-10-07')
+  assert.equal(holidaysCoverYear(DEFAULT_HOLIDAYS, bjAbs(2026, 10, 7)), true)
+  assert.equal(holidaysCoverYear(DEFAULT_HOLIDAYS, bjAbs(2027, 1, 4)), false)
+  assert.equal(holidaysCoverYear(undefined, bjAbs(2026, 10, 7)), false)
+})
+
+test('holidays: priceFor honours holidays', () => {
+  assert.deepEqual(priceFor('deepseek-flash', bjAbs(2026, 10, 1, 10)), { cacheHit: 0.02, cacheMiss: 1, output: 4 })
+  assert.deepEqual(priceFor('deepseek-flash', bjAbs(2026, 10, 8, 10)), { cacheHit: 0.04, cacheMiss: 2, output: 8 })
 })
