@@ -34,7 +34,8 @@ API key 从设置里的 `apiKeyEnv`（默认 `DEEPSEEK_API_KEY`）解析：优�
 
 ## 数据说明
 
-- 内置数据版本 `2026-09-10`（V4.1-Flash 发布日，官方降价）：现行峰价（¥/1M tokens）`deepseek-flash` = 命中 0.04 / 未命中 2 / 输出 8，`deepseek-v4-pro` = 0.30 / 9 / 27（计费未变）；谷价 = 峰价一半。旧名 `deepseek-v4-flash`、`deepseek-v4-flash-vision-exp` 已下线并路由到 V4.1-Flash、按 Flash 价计费（故表中同价保留）。
+- 内置数据版本 `2026-10-17`（V4.1-Flash-1017 发版日；该版**只升级模型、不改价格**，已 2026-10-22 对照官方价格页复核）：现行峰价（¥/1M tokens）`deepseek-flash` = 命中 0.04 / 未命中 2 / 输出 8，`deepseek-v4-pro` = 0.30 / 9 / 27（官方 2026-09-10 起「计费方式保持不变」，现价仍单独挂牌）；谷价 = 峰价一半。旧名 `deepseek-v4-flash`、`deepseek-v4-flash-vision-exp` 已下线并路由到 V4.1-Flash、按 Flash 价计费（故表中同价保留）。
+- **版本戳不只跟调价走**：官方发版但价格不变时，也应把 `scheduleVersion` 推到复核日，否则 `priceStale` 会因日期漂移误报「价格表可能过期」（`2026-09-10` → `2026-10-17` 这次就是这个情况）。
 - **法定节假日**：官方高峰时段为「周一至周五 9–12/14–18，**不含中国法定节假日**」，且调休上班的周末同样按空闲计费。插件按「周末 ∪ 法定节假日」判定空闲日；节假日列表源自 [国务院办公厅关于2026年部分节假日安排的通知](https://www.gov.cn/zhengce/zhengceku/202511/content_7047091.htm)（国办发明电〔2025〕7号）。**每年 11 月国务院公布次年安排后需更新 `holidays`**；`/cost-panel/status` 的 `holidayCovered` 为 `false` 表示当前年份未被覆盖。
 - `currency` 仅影响余额的币种过滤与显示符号，不换算单价。
 - 调价后更新 `prices`（以及需要时更新 `peakWindows`、`scheduleVersion`、`holidays`），都在配置层，不在代码层。
@@ -53,7 +54,7 @@ API key 从设置里的 `apiKeyEnv`（默认 `DEEPSEEK_API_KEY`）解析：优�
 | staleAfterDays | 30 | 价格表超过 N 天未更新（相对 scheduleVersion）时标黄提醒 |
 | models | （空） | 显示哪些模型的单价；留空 = 价格表里全部模型 |
 | prices | 内置 4 条目 | 单价表 `{模型:{cacheHit,cacheMiss,output}}`（¥/1M tokens，峰价）；含 `deepseek-flash`、`deepseek-v4-pro` 及两个 legacy Flash 名 |
-| scheduleVersion | 2026-09-10 | 价格表数据版本戳（YYYY-MM-DD，用于过期判断） |
+| scheduleVersion | 2026-10-17 | 价格表数据版本戳（YYYY-MM-DD，用于过期判断） |
 | peakWindows | [[9,12],[14,18]] | 工作日高峰时段 `[startHour,endHour)` |
 | holidays | 2026 年法定节假日 | 中国法定节假日（北京时间 `YYYY-MM-DD` 数组），全天按低谷计费；每年 11 月更新 |
 

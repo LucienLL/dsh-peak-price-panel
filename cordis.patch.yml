@@ -13,7 +13,7 @@
         peakLeadSeconds: 1800
         currency: CNY
         apiKeyEnv: DEEPSEEK_API_KEY
-        scheduleVersion: '2026-09-10'
+        scheduleVersion: '2026-10-17'
         staleAfterDays: 30
         models: []
         prices:
